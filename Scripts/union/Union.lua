@@ -23,7 +23,24 @@ Union.DiscordSubStates = {
     CustomizeGadgets = 1,
     CourseSelect = 2,
     Jukebox = 3,
+    Boot = 4,
 }
+
+-- Pretty-print any Lua table
+local function dumpTable(tbl, indent)
+    indent = indent or 0
+    local formatting = string.rep("  ", indent)
+
+    for k, v in pairs(tbl) do
+        if type(v) == "table" then
+            print(formatting .. tostring(k) .. " = {")
+            dumpTable(v, indent + 1)
+            print(formatting .. "}")
+        else
+            print(formatting .. tostring(k) .. " = " .. tostring(v))
+        end
+    end
+end
 
 function Union.GetUnionDiscordVersion()
     return Union.Localisation.T("presence_uniondiscord", script_version)
@@ -45,6 +62,14 @@ end
 
 function Union.GetPersistentLevel()
     return UEHelpers.GetPersistentLevel()
+end
+
+function Union.GetKismetSystemLibrary()
+    return UEHelpers.GetKismetSystemLibrary()
+end
+
+function Union.GetKismetTextLibrary()
+    return UEHelpers.GetKismetTextLibrary()
 end
 
 function Union.GetDriverDataUtilityLibrary(ForceInvalidateCache)
@@ -166,11 +191,7 @@ end
 
 function Union.GetStageDataAssetByRowName(stageid)
     local stagetable = Union.GetStageDataTable()
-    print(string.format("Stage Table: %s\n", stageid))
-    
-    local rowname = "EStageID::" .. Union.Structures.GetStageAsEnumFromID(stageid)
-    print(string.format("Stage ID: %s\n", rowname))
-
+    local rowname = "EStageID::" .. stageid
     return stagetable:FindRow(rowname)
 end
 
@@ -213,6 +234,11 @@ function Union.GetDiscordState()
     end
 
     return Union.DiscordStates.Unknown
+end
+
+function Union.GetStringTableText(table_path, key_name)
+    local created_key = string.format('LOCTABLE("%s", "%s")', table_path, key_name)
+    return FText(created_key)
 end
 
 return Union

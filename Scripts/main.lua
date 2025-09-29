@@ -9,29 +9,8 @@ local discordRPC = require("discord_rpc")
 local current_discord_main_state = Union.DiscordStates.Menu
 local current_discord_sub_state = Union.DiscordSubStates.None
 
-local union_racer = nil
-local union_stage = nil
-
 local start_timestamp = 0
-
-local current_language = "en"
-
-local function print_test()
-    union_racer = Union.GetPlayerUnionRacer()
-    union_stage = Union.GetCurrentStage(union_racer)
-
-    print(string.format("Union Racer: %s\n", union_racer:GetFullName()))
-
-    
-    local rawName = Union.Racer.GetDriverName(union_racer)
-    local prettyName = Union.Text.ToTitleCase(rawName)
-
-    print(string.format("Driver Name: %s\n", prettyName))
-
-    print(string.format("Speed Class: %s\n", Union.GetSpeedClass()))
-    print(string.format("Stage: %s\n", union_stage.StageId))
-    print(string.format("Unlocked Super Sonic: %s\n", Union.HasUnlockedSuperSonic()))
-end
+local can_async_race_update = false
 
 local function get_activity_info()
 
@@ -39,7 +18,7 @@ local function get_activity_info()
     local details = nil
     
     if current_discord_main_state == Union.DiscordStates.Menu then
-        state = "Main Menu"
+        state = Union.Localisation.T("presence_mainmenu")
         if Union.IsPlayingOnline() then
             details = Union.Localisation.T("presence_menu_online")
         else
@@ -54,11 +33,10 @@ local function get_activity_info()
     if current_discord_main_state == Union.DiscordStates.Race then
         local raw_gamemode = Union.GetSelectedGameMode()
         local gamemode = Union.Structures.GetGameModeAsEnumFromID(raw_gamemode)
+        state = Union.Localisation.GetGameModeText(gamemode)
         
-        print(gamemode)
-        
-        state = "Game Mode"
-        details = "Game Mode Detail Here"
+        local speed_class = Union.Structures.GetSpeedClassAsEnumFromID(Union.GetSpeedClass())
+        details = Union.Localisation.T("presence_racing", Union.Localisation.GetSpeedClassText(speed_class))
         return state, details
     end
     
@@ -67,37 +45,19 @@ local function get_activity_info()
     return state, details
 end
 
-
 local function get_small_activity_image()
     local smallimagekey = ""
     local smallimagetext = ""
     
     -- Gets the last selected character directly from your save file.
     local lastselected_id = Union.GetLastSelectedCharacter()
-    smallimagekey = Union.Structures.GetDriverAsEnumFromID(lastselected_id)
+    local selected_as_enum = Union.Structures.GetDriverAsEnumFromID(lastselected_id)
+    smallimagekey = string.lower(selected_as_enum)
 
     local rawName = Union.GetDriverNameFromID(lastselected_id)
     local prettyName = Union.Text.ToTitleCase(rawName)
     
     smallimagetext = prettyName
-    
-    --[[
-    
-    if current_discord_main_state == Union.DiscordStates.Race then
-        local player_char = Union.GetPlayerUnionRacer()
-        
-        if player_char:IsValid() then
-            local raw_driverid = Union.Racer.GetDriverID(player_char, true)
-            smallimagekey = Union.Structures.GetDriverAsEnumFromID(raw_driverid)
-            smallimagetext = Union.Racer.GetDriverName(player_char)
-
-            return smallimagekey, smallimagetext
-        end
-    end
-    
-    ]]
-    
-    -- Return empty if we don't have any character info.
     return smallimagekey, smallimagetext
 end
 
@@ -108,9 +68,14 @@ local function get_large_activity_image()
     -- Show the course icon with its name translated.
     if current_discord_main_state == Union.DiscordStates.Race then
         local current_stage = Union.GetCurrentStage(Union.GetPlayerUnionRacer())
-
-        largeimagekey = Union.Structures.GetStageAsEnumFromID(current_stage.StageId)
-        largeimagetext = Union.GetStageName(current_stage.StageId)
+        local stage_as_enum = Union.Structures.GetStageAsEnumFromID(current_stage.StageId)
+        
+        largeimagekey = string.lower(stage_as_enum)
+        
+        local rawName = Union.GetStageName(stage_as_enum)
+        local prettyName = Union.Text.ToTitleCase(rawName)
+        
+        largeimagetext = prettyName
         return largeimagekey, largeimagetext
     end
     
@@ -153,15 +118,13 @@ local function set_discord_substate(sub_state)
 end
 
 -- Puts a timestamp based on the users system clock.
-local function start_timestamp()
+local function start_timer()
     start_timestamp = os.time()
-    return
 end
 
 -- Removes the placed timestamp.
-local function end_timestamp()
+local function end_timer()
     start_timestamp = 0
-    return
 end
 
 local function update_rich_presence()
@@ -175,7 +138,7 @@ local function update_rich_presence()
     local current_state, current_details = get_activity_info()
     local current_largeimagekey, current_largeimagetext = get_large_activity_image()
     local current_smallimagekey, current_smallimagetext = get_small_activity_image()
-    local current_partyid, current_partysize, current_partymax = get_party_info()
+    -- local current_partyid, current_partysize, current_partymax = get_party_info()
      
     discordRPC.updatePresence({
         state = current_state,
@@ -186,11 +149,12 @@ local function update_rich_presence()
         largeImageText = current_largeimagetext,
         smallImageKey = current_smallimagekey,
         smallImageText = current_smallimagetext,
-        partyId = current_partyid,
-        partySize = current_partysize,
-        partyMax = current_partymax,
+        -- partyId = current_partyid,
+        -- partySize = current_partysize,
+        -- partyMax = current_partymax,
     })
     discordRPC.runCallbacks()
+    print("Discord Callback made.")
    
 end
 
@@ -198,17 +162,63 @@ local function init()
     print(discordRPC._VERSION)
     discordRPC.initialize(1411894625878413392, false, 2486820)
     discord_initalised = true
+
+    current_discord_sub_state = Union.DiscordSubStates.Boot
+    update_rich_presence()
 end
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
-    set_discord_substate(Union.DiscordSubStates.None)
+    can_async_race_update = false
 end)
 
-RegisterHook("Function /Script/UNION.RaceSequenceStateReady:StartRace", function(Context)
-    start_timestamp()
+RegisterHook("/Script/UNION.RaceSequenceStateReady:StartRace", function(Context)
+    start_timer()
+    update_rich_presence()
+    
+    can_async_race_update = true
+end)
+
+
+
+RegisterHook("/Script/UNION.CourseSelectWidgetBase:IsCourseSelecting", function(Context)
+    print("Selecting a course.")
+end)
+
+--[[
+
+RegisterHook("Function /Script/UNION.CharaMachineSelectsBase:OnPlayAnimationIn", function(Context)
+    print("Is readying up.")
+end)
+
+]]
+
+RegisterHook("/Script/UNION.RaceSequenceStateResult:UpdateResultData", function(Context)
+    print("Game has been paused")
+end)
+
+-- Implement intro watching check.
+--[[
+NotifyOnNewObject("/Script/UNION.AdvertiseWidget", function(ConstructedObject)
+    print(string.format("Constructed: %s\n", ConstructedObject:GetFullName()))
+end)
+]]
+
+
+NotifyOnNewObject("/Script/UNION.TitleScene", function(ConstructedObject)
+    current_discord_sub_state = Union.DiscordSubStates.None
     update_rich_presence()
 end)
 
 init()
+
+
+if settings.allow_async_race_updates then
+    LoopAsync(settings.race_update_frequency, function()
+        if can_async_race_update then
+            update_rich_presence()
+        end
+        return false
+    end)
+end
 
 RegisterKeyBind(Key.F9, update_rich_presence)
