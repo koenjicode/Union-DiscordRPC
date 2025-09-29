@@ -1,15 +1,15 @@
--- UnionLocalisation.lua
-local UnionLocalisation = {}
+-- Locale.lua
+local Localisation = {}
 
 local Structures = require("Union.UnionStructures")
 
-local Localisation = {
+local LocalisationKey = {
     En = {
         presence_menu_offline   = "Idling in the Main Menu",
         presence_menu_online    = "Idling in an Online Lobby",
         presence_jukebox        = "Layin’ the Wax and Spinnin' the sound!",
         presence_courseselect   = "Selecting a Course",
-        presence_grandprix      = "Selecting a Grand Prix",
+        presence_prixselect     = "Selecting a Grand Prix",
         presence_class          = "Selecting a Speed Class",
         presence_racerselect    = "Selecting a Character & Machine",
         presence_friendmatch    = "Friend Match",
@@ -17,6 +17,19 @@ local Localisation = {
         presence_garage         = "Customizing a Machine",
         presence_finish         = "Finished Race",
         presence_uniondiscord   = "UnionDiscord %s",
+        presence_mainmenu       = "Main Menu",
+        presence_grandprix      = "Grand Prix",
+        presence_timetrial      = "Time Trial",
+        presence_partyrace      = "Race Park",
+        presence_rankmatch      = "World Match",
+        presence_fest           = "Festival",
+        presence_legend         = "Legend Competition",
+        presence_wait           = "Waiting",
+        presence_racing         = "Racing at %s",
+        presence_normalspeed    = "a Normal Speed",
+        presence_highspeed      = "High Speed",
+        presence_sonicspeed     = "Sonic Speed",
+        presence_supersonicspeed = "Super Sonic Speed!",
     },
     
     -- Machine Assisted Translation: red1fouad (28-09-2025)
@@ -227,12 +240,52 @@ local Localisation = {
     },
 }
 
+Localisation.GameModeMap = {
+    None        = "presence_mainmenu",
+    GrandPrix   = "presence_grandprix",
+    PartyRace   = "presence_partyrace",
+    TimeTrial   = "presence_timetrial",
+    RankMatch   = "presence_rankmatch",
+    FriendMatch = "presence_friendmatch",
+    FriendMatch_NSW = "",
+    Fest        = "presence_fest",
+    Legend      = "presence_legend",
+    Garage      = "presence_garage",
+    Dev_FreeRun = "",
+    Num         = "",
+}
+
+Localisation.SpeedClassMap = {
+    NormalSpeed     = "presence_normalspeed",
+    HighSpeed       = "presence_highspeed",
+    SonicSpeed      = "presence_sonicspeed",
+    SuperSonicSpeed = "presence_supersonicspeed",
+}
+
+function Localisation.GetGameModeText(mode_id)
+    local key = Localisation.GameModeMap[mode_id]
+    if not key or key == "" then
+        return "" -- fallback for unmapped modes
+    end
+
+    return Localisation.T(key)
+end
+
+function Localisation.GetSpeedClassText(speed_id)
+    local key = Localisation.SpeedClassMap[speed_id]
+    if not key or key == "" then
+        return "" -- fallback for unmapped modes
+    end
+
+    return Localisation.T(key)
+end
+
 local function T(key, ...)
     local loclibrary = StaticFindObject("/Script/UnionSystem.Default__LocalizationFunctionLibrary")
     local rawlang = loclibrary:GetTextLang()
     
     local lang = Structures.GetLanguageAsEnumFromID(rawlang)
-    local entry = Localisation[lang][key]
+    local entry = LocalisationKey[lang][key]
     
     if not entry then
         return key -- fallback to key if not found
@@ -241,6 +294,6 @@ local function T(key, ...)
     return string.format(entry, ...)
 end
 
-UnionLocalisation.T = T
+Localisation.T = T
 
-return UnionLocalisation
+return Localisation
