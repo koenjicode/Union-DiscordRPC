@@ -237,6 +237,14 @@ Structures.EGameModeId = {
     Num = 11,
 }
 
+Structures.ESpeedClassId = {
+    NormalSpeed     = 0,
+    HighSpeed       = 1,
+    SonicSpeed      = 2,
+    SuperSonicSpeed = 3,
+    Num             = 4,
+}
+
 function Structures.GetAsEnumFromID(enumid, structureid)
     local enumkey = ""
     for key, value in pairs(structureid) do
@@ -263,6 +271,10 @@ end
 
 function Structures.GetLanguageAsEnumFromID(enumid)
     return Structures.GetAsEnumFromID(enumid, Structures.ELanguage)
+end
+
+function Structures.GetSpeedClassAsEnumFromID(enumid)
+    return Structures.GetAsEnumFromID(enumid, Structures.ESpeedClassId)
 end
 
 return Structures
