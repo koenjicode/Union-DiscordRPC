@@ -7,50 +7,60 @@ local settings = require "settings"
 local discordRPC = require("discord_rpc")
 
 local current_discord_main_state = Union.DiscordStates.Menu
-local current_discord_sub_state = Union.DiscordSubStates.None
 
 local start_timestamp = 0
 local can_async_race_update = false
+
+local function get_menu_activity()
+    state = Union.Localisation.T("presence_mainmenu")
+    if Union.IsPlayingOnline() then
+        details = Union.Localisation.T("presence_menu_online")
+    else
+        details = Union.Localisation.T("presence_menu_offline")
+    end
+
+    print(details)
+    return state, details
+end
+
+local function get_race_activity()
+    local raw_gamemode = Union.GetSelectedGameMode()
+    local gamemode = Union.Structures.GetGameModeAsEnumFromID(raw_gamemode)
+    
+    state = Union.Localisation.GetGameModeText(gamemode)
+    
+    -- If we finished a race, stop the timer, disable async updates, and display that we finished it on discord.
+    if Union.Racer.HasFinishedRace(Union.GetPlayerUnionRacer()) then
+        end_timer()
+        can_async_race_update = false
+        details = Union.Localisation.T("presence_finish")
+    else
+        local speed_class = Union.Structures.GetSpeedClassAsEnumFromID(Union.GetSpeedClass())
+        details = Union.Localisation.T("presence_racing", Union.Localisation.GetSpeedClassText(speed_class))
+    end
+    
+    return state, details
+end
 
 local function get_activity_info()
 
     local state = nil
     local details = nil
     
+    -- If we're in a Menu, show what we're doing!
     if current_discord_main_state == Union.DiscordStates.Menu then
-        state = Union.Localisation.T("presence_mainmenu")
-        if Union.IsPlayingOnline() then
-            details = Union.Localisation.T("presence_menu_online")
-        else
-            details = Union.Localisation.T("presence_menu_offline")
-        end
-        
-        print(details)
-        return state, details
+        return get_menu_activity()
     end
     
     -- If we're in a race, get our Game Mode, and what we're doing.
     if current_discord_main_state == Union.DiscordStates.Race then
-        local raw_gamemode = Union.GetSelectedGameMode()
-        local gamemode = Union.Structures.GetGameModeAsEnumFromID(raw_gamemode)
-        state = Union.Localisation.GetGameModeText(gamemode)
-        
-        local speed_class = Union.Structures.GetSpeedClassAsEnumFromID(Union.GetSpeedClass())
-        details = Union.Localisation.T("presence_racing", Union.Localisation.GetSpeedClassText(speed_class))
-        return state, details
+        return get_race_activity()
     end
     
+    -- If we're unsure what the game mode is, we're just waiting. Don't show anything fancy!
     state = "Waiting"
     details = ""
     return state, details
-end
-
-local function get_menu_activity()
-    
-end
-
-local function get_race_activity()
-    
 end
 
 local function get_small_activity_image()
@@ -78,6 +88,7 @@ local function get_large_activity_image()
         local current_stage = Union.GetCurrentStage(Union.GetPlayerUnionRacer())
         local stage_as_enum = Union.Structures.GetStageAsEnumFromID(current_stage.StageId)
         
+        -- Discord is mean to us if we don't convert tihs to be lower ):
         largeimagekey = string.lower(stage_as_enum)
         
         -- Some maps don't actually have a name so we don't display anything if we hover over them, lets opt for a name that conjures mystery.
@@ -127,11 +138,6 @@ local function update_discord_state()
     current_discord_main_state = Union.GetDiscordState()
 end
 
-
-local function set_discord_substate(sub_state)
-    current_discord_sub_state = sub_state
-end
-
 -- Puts a timestamp based on the users system clock.
 local function start_timer()
     start_timestamp = os.time()
@@ -143,7 +149,6 @@ local function end_timer()
 end
 
 local function update_rich_presence()
-
     if not discord_initalised then
         return
     end
@@ -177,8 +182,6 @@ local function init()
     print(discordRPC._VERSION)
     discordRPC.initialize(1411894625878413392, false, 2486820)
     discord_initalised = true
-
-    current_discord_sub_state = Union.DiscordSubStates.Boot
 end
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()

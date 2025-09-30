@@ -134,6 +134,9 @@ function Union.GetCurrentStage(fromunionplayer)
         domainindex = status.CurrentDomainIndex
     end
     
+    print("domain index")
+    print(domainindex)
+    
     local loadedlevels = Union.UnionGetAvailableStages()
     
     return loadedlevels[domainindex + 1]:get()
@@ -196,6 +199,7 @@ function Union.GetStageDataAssetByRowName(stageid)
 end
 
 function Union.GetStageName(stageid)
+    print(stageid)
     local row = Union.GetStageDataAssetByRowName(stageid)
     return row.StageName
 end

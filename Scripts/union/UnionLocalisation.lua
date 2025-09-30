@@ -3,6 +3,10 @@ local Localisation = {}
 
 local Structures = require("Union.UnionStructures")
 
+-- For the Early releases of this mod, force the english localisation.
+-- Later versions will support the game's 13 languages when users are able to vet the machine translations.
+local force_english = true
+
 local LocalisationKey = {
     En = {
         presence_menu_offline   = "Idling in the Main Menu",
@@ -15,7 +19,7 @@ local LocalisationKey = {
         presence_friendmatch    = "Friend Match",
         presence_paused         = "Game Paused",
         presence_garage         = "Customizing a Machine",
-        presence_finish         = "Finished Race",
+        presence_finish         = "Race Finished",
         presence_uniondiscord   = "UnionDiscord %s",
         presence_mainmenu       = "Main Menu",
         presence_grandprix      = "Grand Prix",
