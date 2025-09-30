@@ -205,6 +205,11 @@ Structures.EStageId = {
     Invalid = 255,
 }
 
+-- Stages that we should not display a name for as they don't have a name.
+Structures.BlacklistedStages = {
+    STG1901 = true,
+}
+
 Structures.ELanguage = {
     Ja = 0,
     En = 1,
@@ -255,6 +260,10 @@ function Structures.GetAsEnumFromID(enumid, structureid)
     end
 
     return enumkey
+end
+
+function Structures.IsStageBlacklisted(stage_id)
+    return Structures.BlacklistedStages[stage_id] or false
 end
 
 function Structures.GetStageAsEnumFromID(enumid)

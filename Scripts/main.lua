@@ -45,6 +45,14 @@ local function get_activity_info()
     return state, details
 end
 
+local function get_menu_activity()
+    
+end
+
+local function get_race_activity()
+    
+end
+
 local function get_small_activity_image()
     local smallimagekey = ""
     local smallimagetext = ""
@@ -72,10 +80,17 @@ local function get_large_activity_image()
         
         largeimagekey = string.lower(stage_as_enum)
         
-        local rawName = Union.GetStageName(stage_as_enum)
-        local prettyName = Union.Text.ToTitleCase(rawName)
+        -- Some maps don't actually have a name so we don't display anything if we hover over them, lets opt for a name that conjures mystery.
+        if  Union.Structures.IsStageBlacklisted(stage_as_enum) then
+            largeimagetext = "???"
+            print(string.format("Blacklisted stage chosen: %s\n", stage_as_enum))
+        else
+            local rawName = Union.GetStageName(stage_as_enum)
+            local prettyName = Union.Text.ToTitleCase(rawName)
+
+            largeimagetext = prettyName
+        end
         
-        largeimagetext = prettyName
         return largeimagekey, largeimagetext
     end
     
@@ -164,7 +179,6 @@ local function init()
     discord_initalised = true
 
     current_discord_sub_state = Union.DiscordSubStates.Boot
-    update_rich_presence()
 end
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
@@ -174,34 +188,19 @@ end)
 RegisterHook("/Script/UNION.RaceSequenceStateReady:StartRace", function(Context)
     start_timer()
     update_rich_presence()
-    
     can_async_race_update = true
 end)
-
-
 
 RegisterHook("/Script/UNION.CourseSelectWidgetBase:IsCourseSelecting", function(Context)
     print("Selecting a course.")
 end)
 
---[[
-
-RegisterHook("Function /Script/UNION.CharaMachineSelectsBase:OnPlayAnimationIn", function(Context)
-    print("Is readying up.")
-end)
-
-]]
-
-RegisterHook("/Script/UNION.RaceSequenceStateResult:UpdateResultData", function(Context)
-    print("Game has been paused")
-end)
 
 -- Implement intro watching check.
---[[
 NotifyOnNewObject("/Script/UNION.AdvertiseWidget", function(ConstructedObject)
     print(string.format("Constructed: %s\n", ConstructedObject:GetFullName()))
+    update_rich_presence()
 end)
-]]
 
 
 NotifyOnNewObject("/Script/UNION.TitleScene", function(ConstructedObject)
@@ -210,8 +209,7 @@ NotifyOnNewObject("/Script/UNION.TitleScene", function(ConstructedObject)
 end)
 
 init()
-
-
+    
 if settings.allow_async_race_updates then
     LoopAsync(settings.race_update_frequency, function()
         if can_async_race_update then
