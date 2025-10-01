@@ -4,7 +4,7 @@ local Localisation = {}
 local Structures = require("Union.UnionStructures")
 
 -- For the Early releases of this mod, force the english localisation.
--- Later versions will support the game's 13 languages when users are able to vet the machine translations.
+-- Later versions will support the game's 13 languages when users are able to vet the machine translations, as of now they're not accessible.
 local force_english = true
 
 local LocalisationKey = {
@@ -288,7 +288,13 @@ local function T(key, ...)
     local loclibrary = StaticFindObject("/Script/UnionSystem.Default__LocalizationFunctionLibrary")
     local rawlang = loclibrary:GetTextLang()
     
-    local lang = Structures.GetLanguageAsEnumFromID(rawlang)
+    -- Force english for the beta release.
+    local lang = nil
+    if force_english then
+        lang = "En"
+    else
+        lang = Structures.GetLanguageAsEnumFromID(rawlang)
+    end
     local entry = LocalisationKey[lang][key]
     
     if not entry then
