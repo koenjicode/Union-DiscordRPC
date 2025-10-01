@@ -32,6 +32,14 @@ Union.BlacklistedStages = {
     STG1901 = true,
 }
 
+function Union.IsValidObject(obj)
+    if not obj or not obj:IsValid() then
+        return false
+    end
+
+    return true
+end
+
 function Union.GetUnionDiscordVersion()
     return Union.Localisation.T("presence_uniondiscord", script_version)
 end
@@ -65,6 +73,10 @@ end
 
 function Union.GetKismetTextLibrary()
     return UEHelpers.GetKismetTextLibrary()
+end
+
+function Union.GetKismetMapLibrary(ForceInvalidateCache)
+    return CacheDefaultObject("/Script/Engine.Default__KismetMapLibrary", "Union_KismetArrayLibrary", ForceInvalidateCache)
 end
 
 function Union.GetDriverDataUtilityLibrary(ForceInvalidateCache)
@@ -109,7 +121,7 @@ function Union.GetLanguageSetting()
     return loclibrary:GetTextLang()
 end
 
-function Union.UnionGetAvailableStages() 
+function Union.GetAvailableStages() 
     local appraceconfig = Union.GetAppRaceConfigDataAccessor()
     return appraceconfig:GetSelectedStageSettings()
 end
@@ -119,18 +131,23 @@ function Union.IsPlayingOnline()
     return appmenudata:GetSelectedTopMenuPlayMode() == 2
 end
 
-function Union.GetCurrentStage(fromunionplayer)
-    local status = fromunionplayer.RacerStatus
-    
-    local domainindex = nil
+function Union.GetCurrentStage()
+    local loaded_levels = Union.GetAvailableStages()
+    return loaded_levels[1]:get()
+end
+
+function Union.GetCurrentStageFromUnionRacer(unionracer)
+    local status = unionracer.RacerStatus
+    local loaded_levels = Union.GetAvailableStages()
+
+    local domain_index = nil
     if status.CurrentDomainIndex == 255 then
-        domainindex = 0
+        domain_index = 0
     else
-        domainindex = status.CurrentDomainIndex
+        domain_index = status.CurrentDomainIndex
     end
     
-    local loadedlevels = Union.UnionGetAvailableStages()
-    return loadedlevels[domainindex + 1]:get()
+    return loaded_levels[domain_index + 1]:get()
 end
 
 function Union.GetSelectedGameMode()
@@ -158,22 +175,34 @@ function Union.GetPlayerVehicleInPawn()
 end
 
 function Union.GetPlayerUnionRacer()
-    if Union.GetDiscordState() ~= Union.DiscordStates.Race then
+    if Union.GetDiscordState() ~= Union.DiscordLevelStates.Race then
+        print("Player is not in an environment where a Player character can be connected to.")
+        return nil
+    end
+
+    local player_vehicle = Union.GetPlayerVehicleInPawn()
+    if not Union.IsValidObject(player_vehicle) then
+        print("Player Pawn cannot be found, will skip checking for a player character.")
+        return nil
+    end
+
+    racer_map = Union.GetUnionRacers().RacerMap
+    if not racer_map:IsValid() then
+        print("No racer map has been built at this current stage, skipping.")
         return nil
     end
     
-    local playervehicle = Union.GetPlayerVehicleInPawn()
-    racermap = Union.GetUnionRacers().RacerMap
-    racermap:ForEach(function(i, wracer)
+    found_racer = nil
+    racer_map:ForEach(function(i, wracer)
         local racer = wracer:get()
         if racer.Vehicle:IsValid() then
-            if playervehicle:GetFullName() == racer.Vehicle:GetFullName() then
-                return racer
+            if player_vehicle:GetFullName() == racer.Vehicle:GetFullName() then
+                found_racer = racer
+                return true
             end
         end
     end)
-    
-    return nil
+    return found_racer
 end
 
 function Union.GetStageDataTable()
@@ -213,17 +242,17 @@ function Union.GetDiscordState()
     -- Looks at the name of the Level between the '.' and ':PersistentLevel'
     local match = fullname:match("%.(.-):PersistentLevel")
     if not match then
-        return Union.DiscordStates.Unknown
+        return Union.DiscordLevelStates.Unknown
     end
 
     -- Normalize against known levels
-    for _, level in pairs(Union.DiscordStates) do
+    for _, level in pairs(Union.DiscordLevelStates) do
         if match == level then
             return level
         end
     end
 
-    return Union.DiscordStates.Unknown
+    return Union.DiscordLevelStates.Unknown
 end
 
 return Union

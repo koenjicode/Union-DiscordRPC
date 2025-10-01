@@ -304,6 +304,10 @@ local function T(key, ...)
     return string.format(entry, ...)
 end
 
+function Localisation.GetWaiting()
+    return T("presence_wait")
+end
+
 Localisation.T = T
 
 return Localisation

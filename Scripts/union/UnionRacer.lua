@@ -2,14 +2,6 @@ local UnionRacer = {}
 
 local Math = require("Union.UnionMath")
 
-local function IsValidUnionRacer(unionracer)
-    if not unionracer or not unionracer:IsValid() then
-        return false
-    end
-    
-    return true
-end
-
 function UnionRacer.GetLapCount(unionracer)
     local status = unionracer.RacerStatus
     return Math.Clamp(status.CurrentLapCount, 1, 3)

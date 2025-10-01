@@ -1,7 +1,7 @@
 local _mod_config = {
     -- Miku Miku Mode!!
     -- Default: false :(
-    miku_miku_mode = true,
+    miku_miku_mode = false,
     
     -- EXPERIMENTAL MAY CRASH: Whether or not the game will discord to update asynchorously.
     -- This has the benefits of broadcasting the current crossworld your in at the cost of extra performance.
