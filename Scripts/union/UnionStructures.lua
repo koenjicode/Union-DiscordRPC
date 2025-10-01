@@ -1,5 +1,7 @@
 local Structures = {}
 
+-- Driver ID's from the game, skins also occupy their own ID space.
+-- TODO: At a later date, there will most likely be a system that allows for custom characters to load, should be supported.
 Structures.EDriverId = {
     Sonic = 0,
     Tails = 1,
@@ -94,6 +96,7 @@ Structures.EDriverId = {
     None = 255,
 }
 
+-- Stage ID's use the same ID list from the game.
 Structures.EStageId = {
     STG1001 = 0,
     STG1002 = 1,
@@ -193,11 +196,7 @@ Structures.EStageId = {
     Invalid = 255,
 }
 
--- Stages that we should not display a name for as they don't have a name.
-Structures.BlacklistedStages = {
-    STG1901 = true,
-}
-
+-- This is all the languages the game supports, follows the Uenum structure.
 Structures.ELanguage = {
     Ja = 0,
     En = 1,
@@ -215,6 +214,7 @@ Structures.ELanguage = {
     Th = 13,
 }
 
+-- All the Game Modes used from the game, follows the Uenum structure.
 Structures.EGameModeId = {
     None = 0,
     GrandPrix = 1,
@@ -230,6 +230,7 @@ Structures.EGameModeId = {
     Num = 11,
 }
 
+-- Speed classes, same as the Uenum structure.
 Structures.ESpeedClassId = {
     NormalSpeed     = 0,
     HighSpeed       = 1,
@@ -238,6 +239,7 @@ Structures.ESpeedClassId = {
     Num             = 4,
 }
 
+-- 
 function Structures.GetAsEnumFromID(enumid, structureid)
     local enumkey = ""
     for key, value in pairs(structureid) do
@@ -248,10 +250,6 @@ function Structures.GetAsEnumFromID(enumid, structureid)
     end
 
     return enumkey
-end
-
-function Structures.IsStageBlacklisted(stage_id)
-    return Structures.BlacklistedStages[stage_id] or false
 end
 
 function Structures.GetStageAsEnumFromID(enumid)

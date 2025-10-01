@@ -8,17 +8,18 @@ Union.Math          = require("Union.UnionMath")
 Union.Structures    = require("Union.UnionStructures")
 Union.Localisation  = require("Union.UnionLocalisation")
 
-local script_version = "v1.1"
+local script_version = "Crossworld Hub Beta ver. 0.01.01"
 
--- Enum-like table for known levels
-Union.DiscordStates = {
+-- A table for all the key level states.
+Union.DiscordLevelStates = {
     Menu = "PL_Menu",
     Race = "PL_Race",
     PreRace = "PL_PreRace",
     Unknown = "Unknown"
 }
 
-Union.DiscordSubStates = {
+-- Menu states, they're not really being used right now but will be useful at a later date (hopefully)
+Union.DiscordMenuStates = {
     None = 0,
     CustomizeGadgets = 1,
     CourseSelect = 2,
@@ -26,24 +27,18 @@ Union.DiscordSubStates = {
     Boot = 4,
 }
 
--- Pretty-print any Lua table
-local function dumpTable(tbl, indent)
-    indent = indent or 0
-    local formatting = string.rep("  ", indent)
-
-    for k, v in pairs(tbl) do
-        if type(v) == "table" then
-            print(formatting .. tostring(k) .. " = {")
-            dumpTable(v, indent + 1)
-            print(formatting .. "}")
-        else
-            print(formatting .. tostring(k) .. " = " .. tostring(v))
-        end
-    end
-end
+-- Stages that we should not display a name for. They  just dont have any names.
+Union.BlacklistedStages = {
+    STG1901 = true,
+}
 
 function Union.GetUnionDiscordVersion()
     return Union.Localisation.T("presence_uniondiscord", script_version)
+end
+
+-- Blacklisted stages will show up
+function Union.IsStageBlacklisted(stage_id)
+    return Union.BlacklistedStages[stage_id] or false
 end
 
 -- Grabbed from UEHelpers.lua
@@ -134,11 +129,7 @@ function Union.GetCurrentStage(fromunionplayer)
         domainindex = status.CurrentDomainIndex
     end
     
-    print("domain index")
-    print(domainindex)
-    
     local loadedlevels = Union.UnionGetAvailableStages()
-    
     return loadedlevels[domainindex + 1]:get()
 end
 
@@ -168,23 +159,21 @@ end
 
 function Union.GetPlayerUnionRacer()
     if Union.GetDiscordState() ~= Union.DiscordStates.Race then
-        print("Not in a state where a Union Racer can be spawned.")
+        return nil
     end
     
     local playervehicle = Union.GetPlayerVehicleInPawn()
-    
     racermap = Union.GetUnionRacers().RacerMap
-    local foundracer = nil
     racermap:ForEach(function(i, wracer)
         local racer = wracer:get()
         if racer.Vehicle:IsValid() then
             if playervehicle:GetFullName() == racer.Vehicle:GetFullName() then
-                foundracer = racer
+                return racer
             end
         end
     end)
     
-    return foundracer
+    return nil
 end
 
 function Union.GetStageDataTable()
@@ -199,7 +188,6 @@ function Union.GetStageDataAssetByRowName(stageid)
 end
 
 function Union.GetStageName(stageid)
-    print(stageid)
     local row = Union.GetStageDataAssetByRowName(stageid)
     return row.StageName
 end
@@ -222,8 +210,6 @@ function Union.GetDiscordState()
     local persistentlevel = Union.GetPersistentLevel()
     local fullname = persistentlevel:GetFullName()
     
-    print(fullname)
-    
     -- Looks at the name of the Level between the '.' and ':PersistentLevel'
     local match = fullname:match("%.(.-):PersistentLevel")
     if not match then
@@ -238,11 +224,6 @@ function Union.GetDiscordState()
     end
 
     return Union.DiscordStates.Unknown
-end
-
-function Union.GetStringTableText(table_path, key_name)
-    local created_key = string.format('LOCTABLE("%s", "%s")', table_path, key_name)
-    return FText(created_key)
 end
 
 return Union

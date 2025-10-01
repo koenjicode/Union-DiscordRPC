@@ -5,11 +5,21 @@ local settings = require "settings"
 
 -- Discord Rich Presence
 local discordRPC = require("discord_rpc")
-
-local current_discord_main_state = Union.DiscordStates.Menu
+local current_discord_main_state = Union.DiscordLevelStates.Menu
 
 local start_timestamp = 0
 local can_async_race_update = false
+local is_beta_build = true
+
+-- Puts a timestamp based on the users system clock.
+local function start_timer()
+    start_timestamp = os.time()
+end
+
+-- Removes the placed timestamp.
+local function end_timer()
+    start_timestamp = 0
+end
 
 local function get_menu_activity()
     state = Union.Localisation.T("presence_mainmenu")
@@ -18,8 +28,6 @@ local function get_menu_activity()
     else
         details = Union.Localisation.T("presence_menu_offline")
     end
-
-    print(details)
     return state, details
 end
 
@@ -43,30 +51,24 @@ local function get_race_activity()
 end
 
 local function get_activity_info()
-
-    local state = nil
-    local details = nil
-    
     -- If we're in a Menu, show what we're doing!
-    if current_discord_main_state == Union.DiscordStates.Menu then
-        return get_menu_activity()
+    -- BETA NOTE: For the beta release, we'll disable live updates for now, but it won't always be like this.
+    if not is_beta_build then
+        if current_discord_main_state == Union.DiscordLevelStates.Menu then
+            return get_menu_activity()
+        end
     end
     
     -- If we're in a race, get our Game Mode, and what we're doing.
-    if current_discord_main_state == Union.DiscordStates.Race then
+    if current_discord_main_state == Union.DiscordLevelStates.Race then
         return get_race_activity()
     end
     
     -- If we're unsure what the game mode is, we're just waiting. Don't show anything fancy!
-    state = "Waiting"
-    details = ""
-    return state, details
+    return "Waiting", ""
 end
 
-local function get_small_activity_image()
-    local smallimagekey = ""
-    local smallimagetext = ""
-    
+local function get_race_activity_smallimage()
     -- Gets the last selected character directly from your save file.
     local lastselected_id = Union.GetLastSelectedCharacter()
     local selected_as_enum = Union.Structures.GetDriverAsEnumFromID(lastselected_id)
@@ -74,51 +76,66 @@ local function get_small_activity_image()
 
     local rawName = Union.GetDriverNameFromID(lastselected_id)
     local prettyName = Union.Text.ToTitleCase(rawName)
-    
+
     smallimagetext = prettyName
     return smallimagekey, smallimagetext
 end
 
-local function get_large_activity_image()
-    local largeimagekey = ""
-    local largeimagetext = ""
+local function get_small_activity_image()
+    -- BETA NOTE: At some point we'd want to keep track of this as we can get a direct reference to our selected character in menus.
+    -- But for now we won't do so.
+    if current_discord_main_state ~= Union.DiscordLevelStates.Race then
+        if is_beta_build then
+            return "", ""
+        end
+    end
     
-    -- Show the course icon with its name translated.
-    if current_discord_main_state == Union.DiscordStates.Race then
-        local current_stage = Union.GetCurrentStage(Union.GetPlayerUnionRacer())
-        local stage_as_enum = Union.Structures.GetStageAsEnumFromID(current_stage.StageId)
-        
-        -- Discord is mean to us if we don't convert tihs to be lower ):
-        largeimagekey = string.lower(stage_as_enum)
-        
-        -- Some maps don't actually have a name so we don't display anything if we hover over them, lets opt for a name that conjures mystery.
-        if  Union.Structures.IsStageBlacklisted(stage_as_enum) then
-            largeimagetext = "???"
-            print(string.format("Blacklisted stage chosen: %s\n", stage_as_enum))
-        else
-            local rawName = Union.GetStageName(stage_as_enum)
-            local prettyName = Union.Text.ToTitleCase(rawName)
+    return get_race_activity_smallimage()
+end
 
-            largeimagetext = prettyName
-        end
-        
-        return largeimagekey, largeimagetext
-    end
-    
-    -- If we're not on a course, lets show our default image instead.
+local function get_default_activity_largeimage()
+    local ver_info = Union.GetUnionDiscordVersion()
+    -- Ready? Miku Miku Moooooooooode!
     if settings.miku_miku_mode then
-        largeimagekey = "main3"
-    else
-        if Union.HasUnlockedSuperSonic() then
-            largeimagekey = "main2"
-        else
-            largeimagekey = "main"
-        end
+        return "main3", ver_info
     end
     
-    -- Default to using Discord Version here.
-    largeimagetext = Union.GetUnionDiscordVersion()
-    return largeimagekey, largeimagetext
+    -- If Miku mode is disabled (shame on you), we check if Super Sonic is unlocked instead.
+    local largeimagekey = nil
+    if Union.HasUnlockedSuperSonic() then
+        largeimagekey = "main2"
+    else
+        largeimagekey = "main"
+    end
+    
+    return largeimagekey, ver_info
+end
+
+local function get_race_activity_largeimage()
+    -- Different racers can be in different domains, so we grab the current stage based on our current character.
+    local current_stage = Union.GetCurrentStage(Union.GetPlayerUnionRacer())
+    local stage_as_enum = Union.Structures.GetStageAsEnumFromID(current_stage.StageId)
+    -- Discord is mean to us if we don't convert this to be lower ):
+    largeimagekey = string.lower(stage_as_enum)
+
+    -- Some maps don't actually have a name so we don't display anything if we hover over them, lets opt for a name that conjures mystery.
+    if  Union.Structures.IsStageBlacklisted(stage_as_enum) then
+        return largeimagekey, "???"
+    else
+        local rawName = Union.GetStageName(stage_as_enum)
+        local prettyName = Union.Text.ToTitleCase(rawName)
+        return largeimagekey, prettyName
+    end
+end
+
+local function get_large_activity_image()
+    -- If we're in a race, show the image of the stage we're on.
+    if current_discord_main_state == Union.DiscordLevelStates.Race then
+        get_race_activity_largeimage()
+    end
+    
+    -- Outside of races, show the default large activity image.
+    return get_default_activity_largeimage()
 end
 
 -- Get Party info
@@ -136,16 +153,6 @@ end
 
 local function update_discord_state()
     current_discord_main_state = Union.GetDiscordState()
-end
-
--- Puts a timestamp based on the users system clock.
-local function start_timer()
-    start_timestamp = os.time()
-end
-
--- Removes the placed timestamp.
-local function end_timer()
-    start_timestamp = 0
 end
 
 local function update_rich_presence()
@@ -181,7 +188,6 @@ end
 local function init()
     print(discordRPC._VERSION)
     discordRPC.initialize(1411894625878413392, false, 2486820)
-    discord_initalised = true
 end
 
 RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
@@ -192,23 +198,6 @@ RegisterHook("/Script/UNION.RaceSequenceStateReady:StartRace", function(Context)
     start_timer()
     update_rich_presence()
     can_async_race_update = true
-end)
-
-RegisterHook("/Script/UNION.CourseSelectWidgetBase:IsCourseSelecting", function(Context)
-    print("Selecting a course.")
-end)
-
-
--- Implement intro watching check.
-NotifyOnNewObject("/Script/UNION.AdvertiseWidget", function(ConstructedObject)
-    print(string.format("Constructed: %s\n", ConstructedObject:GetFullName()))
-    update_rich_presence()
-end)
-
-
-NotifyOnNewObject("/Script/UNION.TitleScene", function(ConstructedObject)
-    current_discord_sub_state = Union.DiscordSubStates.None
-    update_rich_presence()
 end)
 
 init()

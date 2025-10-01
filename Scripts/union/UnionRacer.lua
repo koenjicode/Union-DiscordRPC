@@ -1,7 +1,6 @@
 local UnionRacer = {}
 
-local UnionMath = require("Union.UnionMath")
-local UnionStructures = require("Union.UnionStructures")
+local Math = require("Union.UnionMath")
 
 local function IsValidUnionRacer(unionracer)
     if not unionracer or not unionracer:IsValid() then
@@ -13,7 +12,7 @@ end
 
 function UnionRacer.GetLapCount(unionracer)
     local status = unionracer.RacerStatus
-    return UnionMath.Clamp(status.CurrentLapCount, 1, 3)
+    return Math.Clamp(status.CurrentLapCount, 1, 3)
 end
 
 function UnionRacer.GetDriverID(unionracer, useoriginalid)
