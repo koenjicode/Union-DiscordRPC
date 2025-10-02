@@ -22,21 +22,17 @@ local function end_timer()
 end
 
 local function get_menu_activity()
-    state = Union.Localisation.T("presence_mainmenu")
-    if Union.IsPlayingOnline() then
-        details = Union.Localisation.T("presence_menu_online")
-    else
-        details = Union.Localisation.T("presence_menu_offline")
-    end
-    return state, details
+    -- Simplified for now, but update at a later date.
+    state = Union.Localisation.T("presence_wait")
+    return state, ""
 end
 
 local function get_race_activity()
     local raw_gamemode = Union.GetSelectedGameMode()
     local gamemode = Union.Structures.GetGameModeAsEnumFromID(raw_gamemode)
-    
+
     state = Union.Localisation.GetGameModeText(gamemode)
-    
+
     -- If we finished a race, stop the timer, disable async updates, and display that we finished it on discord.
     local player = Union.GetPlayerUnionRacer()
     if player and player:IsValid() then
@@ -51,7 +47,7 @@ local function get_race_activity()
             return state, details
         end
     end
-    
+
     -- If we're in a state where we don't have a valid player character, we'll assume we're waiting on something.
     return state, Union.Localisation.GetWaiting()
 end
@@ -59,10 +55,14 @@ end
 local function get_activity_info()
     -- BETA NOTE: For the beta release, we'll disable live updates for now, but it won't always be like this.
     -- If we're in a race, get our Game Mode, and what we're doing.
+    if current_discord_main_state == Union.DiscordLevelStates.Menu then
+        return get_menu_activity()
+    end
+
     if current_discord_main_state == Union.DiscordLevelStates.Race then
         return get_race_activity()
     end
-    
+
     -- If we're unsure what the game mode is, we're just waiting. Don't show anything fancy!
     return Union.Localisation.GetWaiting(), ""
 end
@@ -88,7 +88,7 @@ local function get_small_activity_image()
             return "", ""
         end
     end
-    
+
     return get_race_activity_smallimage()
 end
 
@@ -98,7 +98,7 @@ local function get_default_activity_largeimage()
     if settings.miku_miku_mode then
         return "main3", ver_info
     end
-    
+
     -- If Miku mode is disabled (shame on you), we check if Super Sonic is unlocked instead.
     local largeimagekey = nil
     if Union.HasUnlockedSuperSonic() then
@@ -106,7 +106,7 @@ local function get_default_activity_largeimage()
     else
         largeimagekey = "main"
     end
-    
+
     return largeimagekey, ver_info
 end
 
@@ -123,7 +123,7 @@ local function get_race_activity_largeimage()
     else
         stage = Union.GetCurrentStage()
     end
-    
+
     -- Discord is mean to us if we don't convert this to be lower ):
     local as_enum = Union.Structures.GetStageAsEnumFromID(stage.StageId)
     largeimagekey = string.lower(as_enum)
@@ -144,7 +144,7 @@ local function get_large_activity_image()
     if current_discord_main_state == Union.DiscordLevelStates.Race then
         return get_race_activity_largeimage()
     end
-    
+
     -- Outside of races, show the default large activity image.
     return get_default_activity_largeimage()
 end
@@ -152,12 +152,12 @@ end
 local function update_rich_presence()
     -- Update our discord main state, before we try and find info.
     current_discord_main_state = Union.GetDiscordState()
-    
+
     -- Get all related discord information and then update our presence for everyone to see!
     local state, details = get_activity_info()
     local largeimagekey, largeimagetext = get_large_activity_image()
     local smallimagekey, smallimagetext = get_small_activity_image()
-     
+
     discordRPC.updatePresence({
         state = state,
         details = details,
@@ -168,7 +168,7 @@ local function update_rich_presence()
         smallImageKey = smallimagekey,
         smallImageText = smallimagetext,
     })
-    
+
     -- Display the changes on discord, and lets leave a callback note.
     discordRPC.runCallbacks()
     print(string.format("Discord Callback made: %s", os.date()))
@@ -194,7 +194,7 @@ RegisterHook("/Script/UNION.RaceSequenceStateReady:StartRace", function(Context)
 end)
 
 init()
-    
+
 if settings.allow_async_race_updates then
     LoopAsync(settings.race_update_frequency, function()
         if can_async_race_update then
