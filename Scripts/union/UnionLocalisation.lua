@@ -11,6 +11,7 @@ local LocalisationKey = {
     En = {
         presence_menu_offline   = "Idling in the Main Menu",
         presence_menu_online    = "Idling in an Online Lobby",
+        presence_inmenus        = "In Menus",
         presence_jukebox        = "Layin’ the Wax and Spinnin' the sound!",
         presence_courseselect   = "Selecting a Course",
         presence_prixselect     = "Selecting a Grand Prix",
@@ -35,8 +36,8 @@ local LocalisationKey = {
         presence_sonicspeed     = "Sonic Speed",
         presence_supersonicspeed = "Super Sonic Speed!",
     },
-    
-    -- Machine Assisted Translation: red1fouad (28-09-2025)
+
+    -- Translated By: red1fouad (28-09-2025)
     Ja = {
         presence_menu_offline   = "メインメニューで待機中",
         presence_menu_online    = "オンラインロビーで待機中",
@@ -51,7 +52,7 @@ local LocalisationKey = {
         presence_finish         = "レース終了",
         presence_uniondiscord   = "UnionDiscord %s",
     },
-    
+
     -- Translated by: red1fouad (27-09-2025)
     Fr = {
         presence_menu_offline   = "Inactif dans le menu principal",
@@ -83,7 +84,7 @@ local LocalisationKey = {
         presence_finish         = "Gara terminata",
         presence_uniondiscord   = "UnionDiscord %s",
     },
-    
+
     -- Translated by: a5tronomy (27-09-2025)
     De = {
         presence_menu_offline   = "Im Hauptmenü",
@@ -287,7 +288,7 @@ end
 local function T(key, ...)
     local loclibrary = StaticFindObject("/Script/UnionSystem.Default__LocalizationFunctionLibrary")
     local rawlang = loclibrary:GetTextLang()
-    
+
     -- Force english for the beta release.
     local lang = nil
     if force_english then
@@ -296,11 +297,11 @@ local function T(key, ...)
         lang = Structures.GetLanguageAsEnumFromID(rawlang)
     end
     local entry = LocalisationKey[lang][key]
-    
+
     if not entry then
         return key -- fallback to key if not found
     end
-    
+
     return string.format(entry, ...)
 end
 
