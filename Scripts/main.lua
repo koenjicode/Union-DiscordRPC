@@ -6,6 +6,7 @@ local settings = require "settings"
 -- Discord Rich Presence
 local discordRPC = require("discord_rpc")
 local current_discord_main_state = Union.DiscordLevelStates.Menu
+local last_discord_presence = {}
 
 local start_timestamp = 0
 local can_async_race_update = false
@@ -23,7 +24,7 @@ end
 
 local function get_menu_activity()
     -- Simplified for now, but update at a later date.
-    state = Union.Localisation.T("presence_wait")
+    local state = Union.Localisation.T("presence_wait")
     return state, ""
 end
 
@@ -31,8 +32,7 @@ local function get_race_activity()
     local raw_gamemode = Union.GetSelectedGameMode()
     local gamemode = Union.Structures.GetGameModeAsEnumFromID(raw_gamemode)
 
-    state = Union.Localisation.GetGameModeText(gamemode)
-    
+    local state = Union.Localisation.GetGameModeText(gamemode)
 
     -- If we finished a race, stop the timer, disable async updates, and display that we finished it on discord.
     local player = Union.GetPlayerUnionRacer()
@@ -41,13 +41,23 @@ local function get_race_activity()
             end_timer()
             can_async_race_update = false
             details = Union.Localisation.T("presence_finish")
+            
             return state, details
         else
-            local vehicle_type = Union.Racer.GetVehicleType(player)
-            local vehicle_enum = Union.Structures.GetVehicleAsEnumFromID(vehicle_type)
-        
-            local speed_class = Union.Structures.GetSpeedClassAsEnumFromID(Union.GetSpeedClass())
-            details = Union.Localisation.T("presence_racing", Union.Localisation.GetVehicleDrivingText(vehicle_enum), Union.Localisation.GetSpeedClassText(speed_class))
+            -- Check if the player has paused the game state.
+            details = nil
+            if not Union.IsGamePaused() then
+                -- If we're not paused, we do the usual grab our related information and display as normal.
+                local vehicle_type = Union.Racer.GetVehicleType(player)
+                local vehicle_enum = Union.Structures.GetVehicleAsEnumFromID(vehicle_type)
+
+                local speed_class = Union.Structures.GetSpeedClassAsEnumFromID(Union.GetSpeedClass())
+                details = Union.Localisation.T("presence_racing", Union.Localisation.GetVehicleDrivingText(vehicle_enum), Union.Localisation.GetSpeedClassText(speed_class))
+            else
+                -- If we are paused, show "Game Paused"
+                details = Union.Localisation.T("presence_paused")
+            end
+            
             return state, details
         end
     end
@@ -176,8 +186,8 @@ local function update_rich_presence()
     local state, details = get_activity_info()
     local largeimagekey, largeimagetext = get_large_activity_image()
     local smallimagekey, smallimagetext = get_small_activity_image()
-
-    discordRPC.updatePresence({
+    
+    new_discord_presence = {
         state = state,
         details = details,
         startTimestamp = start_timestamp,
@@ -186,11 +196,18 @@ local function update_rich_presence()
         largeImageText = largeimagetext,
         smallImageKey = smallimagekey,
         smallImageText = smallimagetext,
-    })
-
-    -- Display the changes on discord, and lets leave a callback note.
-    discordRPC.runCallbacks()
-    print(string.format("Discord Callback made: %s", os.date()))
+    }
+    
+    -- We only update the presence if an actual change has occur, if a change has occured we just ignore it.
+    -- Better usage of discord's rate limit.
+    if Union.HasPresenceChanged(last_discord_presence, new_discord_presence) then
+        -- Display the changes on discord, and lets leave a callback note.
+        discordRPC.updatePresence(new_discord_presence)
+        discordRPC.runCallbacks()
+        
+        last_discord_presence = new_discord_presence
+        print(string.format("Discord Callback made: %s", os.date()))
+    end
 end
 
 local function init()

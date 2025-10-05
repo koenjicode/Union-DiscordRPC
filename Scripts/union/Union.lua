@@ -40,6 +40,29 @@ function Union.IsValidObject(obj)
     return true
 end
 
+-- Checks if Discord Rich Presence actually has made a change.
+function Union.HasPresenceChanged(old, new)
+    -- Covers first time runs.
+    if old == nil then
+        return true
+    end
+
+    for key, value in pairs(new) do
+        if old[key] ~= value then
+            return true
+        end
+    end
+
+    -- Also check if old has any extra keys not in new.
+    for key in pairs(old) do
+        if new[key] == nil then
+            return true
+        end
+    end
+
+    return false
+end
+
 -- The current script version of the mod.
 function Union.GetUnionDiscordVersion()
     return Union.Localisation.T("presence_uniondiscord", script_version)
@@ -101,7 +124,12 @@ function Union.GetAppMenuDataAccessor(ForceInvalidateCache)
 end
 
 function Union.GetAppRaceConfigDataAccessor(ForceInvalidateCache)
-    return CacheDefaultObject("/Script/UNION.Default__AppRaceConfigDataAccessor", "Union_AppRaceConfigDataAccessor", ForceInvalidateCache)
+    return CacheDefaultObject("/Script/UNION.Default__AppRaceConfigDataAccessor", "Union_AppRaceConfigDataAccessor",
+        ForceInvalidateCache)
+end
+
+function Union.GetPauseManager(ForceInvalidateCache)
+    return CacheDefaultObject("/Script/UnionRun.Default__PauseManager", "Union_PauseManager", ForceInvalidateCache)
 end
 
 function Union.GetSaveDataManageSubsystem(ForceInvalidateCache)
@@ -115,6 +143,11 @@ end
 function Union.HasUnlockedSuperSonic()
     local appmenu = Union.GetAppMenuDataAccessor()
     return appmenu:GetTitleVisualId() == 1
+end
+
+function Union.IsGamePaused()
+    local gameplay_statics = UEHelpers.GetGameplayStatics()
+    return gameplay_statics:IsGamePaused(UEHelpers.GetWorld())
 end
 
 function Union.GetLanguageSetting()
