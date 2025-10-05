@@ -9,7 +9,7 @@ local current_discord_main_state = Union.DiscordLevelStates.Menu
 
 local start_timestamp = 0
 local can_async_race_update = false
-local is_beta_build = true
+local developer_mode = true
 
 -- Puts a timestamp based on the users system clock.
 local function start_timer()
@@ -82,15 +82,11 @@ local function get_race_activity_smallimage()
 end
 
 local function get_small_activity_image()
-    -- BETA NOTE: At some point we'd want to keep track of this as we can get a direct reference to our selected character in menus.
-    -- But for now we won't do so.
-    if current_discord_main_state ~= Union.DiscordLevelStates.Race then
-        if is_beta_build then
-            return "", ""
-        end
+    if current_discord_main_state == Union.DiscordLevelStates.Race then
+        return get_race_activity_smallimage()
     end
 
-    return get_race_activity_smallimage()
+    return "", ""
 end
 
 local function get_default_activity_largeimage()
