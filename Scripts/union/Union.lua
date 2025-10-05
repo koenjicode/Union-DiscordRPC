@@ -1,4 +1,3 @@
--- Union.lua
 local Union = {}
 local UEHelpers = require("UEHelpers")
 
@@ -8,7 +7,7 @@ Union.Math          = require("Union.UnionMath")
 Union.Structures    = require("Union.UnionStructures")
 Union.Localisation  = require("Union.UnionLocalisation")
 
-local script_version = "Crossworld Hub Beta ver. 0.01.01"
+local script_version = "ver. 0.02.00"
 
 -- A table for all the key level states.
 Union.DiscordLevelStates = {
@@ -32,6 +31,7 @@ Union.BlacklistedStages = {
     STG1901 = true,
 }
 
+-- Generic validity check to see if an object is still accessible.
 function Union.IsValidObject(obj)
     if not obj or not obj:IsValid() then
         return false
@@ -40,6 +40,7 @@ function Union.IsValidObject(obj)
     return true
 end
 
+-- The current script version of the mod.
 function Union.GetUnionDiscordVersion()
     return Union.Localisation.T("presence_uniondiscord", script_version)
 end
