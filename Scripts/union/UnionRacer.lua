@@ -2,10 +2,20 @@ local UnionRacer = {}
 
 local Math = require("Union.UnionMath")
 
+function UnionRacer.GetVehicle(unionracer)
+    return unionracer.Vehicle
+end
+
 function UnionRacer.GetLapCount(unionracer)
     local status = unionracer.RacerStatus
     return Math.Clamp(status.CurrentLapCount, 1, 3)
 end
+
+function UnionRacer.GetVehicleType(unionracer)
+    local vehicle = unionracer.Vehicle
+    return vehicle:GetVehicleType()
+end
+
 
 function UnionRacer.GetDriverID(unionracer, useoriginalid)
     local status = unionracer.RacerStatus

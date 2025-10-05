@@ -43,8 +43,11 @@ local function get_race_activity()
             details = Union.Localisation.T("presence_finish")
             return state, details
         else
+            local vehicle_type = Union.Racer.GetVehicleType(player)
+            local vehicle_enum = Union.Structures.GetVehicleAsEnumFromID(vehicle_type)
+        
             local speed_class = Union.Structures.GetSpeedClassAsEnumFromID(Union.GetSpeedClass())
-            details = Union.Localisation.T("presence_racing", Union.Localisation.GetSpeedClassText(speed_class))
+            details = Union.Localisation.T("presence_racing", Union.Localisation.GetVehicleDrivingText(vehicle_enum), Union.Localisation.GetSpeedClassText(speed_class))
             return state, details
         end
     end
@@ -70,14 +73,33 @@ end
 
 local function get_race_activity_smallimage()
     -- Gets the last selected character directly from your save file.
-    local lastselected_id = Union.GetLastSelectedCharacter()
-    local selected_as_enum = Union.Structures.GetDriverAsEnumFromID(lastselected_id)
-    smallimagekey = string.lower(selected_as_enum)
-
-    local rawName = Union.GetDriverNameFromID(lastselected_id)
-    local prettyName = Union.Text.ToTitleCase(rawName)
-
-    smallimagetext = prettyName
+    local union_player = Union.GetPlayerUnionRacer()
+    local player_loaded = Union.IsValidObject(union_player)
+    
+    -- Get the driver information, if we don't have a valid union racer, we can use our last selected driver info.
+    local driver_id = nil
+    if player_loaded then
+        driver_id = Union.Racer.GetDriverID(union_player, false)
+    else
+        driver_id = Union.GetLastSelectedCharacter()
+    end
+    local as_enum = Union.Structures.GetDriverAsEnumFromID(driver_id)
+    
+    -- Returns the localised text string
+    local raw_name = Union.GetDriverNameFromID(driver_id)
+    local racer_name = Union.Text.ToTitleCase(raw_name)
+    
+    -- If the player is loaded, then we'll also display the actual lap information with the player name.
+    smallimagekey = string.lower(as_enum)
+    local smallimagetext = nil
+    if player_loaded then
+        local current_lap = Union.Racer.GetLapCount(union_player)
+        local lap_info_text = Union.Localisation.T("presence_lap", current_lap)
+        smallimagetext = string.format("%s - %s", racer_name, lap_info_text)
+    else
+        smallimagetext = racer_name
+    end
+    
     return smallimagekey, smallimagetext
 end
 

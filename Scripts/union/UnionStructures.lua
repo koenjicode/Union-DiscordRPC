@@ -96,6 +96,13 @@ Structures.EDriverId = {
     None = 255,
 }
 
+-- Vehicle types that can happen in-game.
+Structures.EVehicleType = {
+    VehicleTypeCar = 0,
+    VehicleTypeBoat = 1,
+    VehicleTypePlane = 2,
+}
+
 -- Stage ID's use the same ID list from the game.
 Structures.EStageId = {
     STG1001 = 0,
@@ -250,6 +257,10 @@ function Structures.GetAsEnumFromID(enumid, structureid)
     end
 
     return enumkey
+end
+
+function Structures.GetVehicleAsEnumFromID(enumid)
+    return Structures.GetAsEnumFromID(enumid, Structures.EVehicleType)
 end
 
 function Structures.GetStageAsEnumFromID(enumid)
