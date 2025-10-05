@@ -32,6 +32,7 @@ local function get_race_activity()
     local gamemode = Union.Structures.GetGameModeAsEnumFromID(raw_gamemode)
 
     state = Union.Localisation.GetGameModeText(gamemode)
+    
 
     -- If we finished a race, stop the timer, disable async updates, and display that we finished it on discord.
     local player = Union.GetPlayerUnionRacer()
@@ -203,5 +204,3 @@ if settings.allow_async_race_updates then
         return false
     end)
 end
-
-RegisterKeyBind(Key.F9, update_rich_presence)
