@@ -10,8 +10,8 @@ local _mod_config = {
     
     -- You can adjust the frequency of Race Updates. You can lower this to save up on performance.
     -- Keep in mind, discord has a rate limits of 5 updates per 20 seconds.
-    -- Default: 4000
-    race_update_frequency = 4000,
+    -- Default: 1000
+    race_update_frequency = 1000,
 }
 
 return _mod_config
