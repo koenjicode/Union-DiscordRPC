@@ -25,7 +25,10 @@ local LocalisationKey = {
         presence_fest           = "Festival",
         presence_legend         = "Legend Competition",
         presence_wait           = "Waiting",
-        presence_racing         = "Racing at %s",
+        presence_racing         = "%s at %s",
+        presence_car            = "Racing",
+        presence_boat           = "Boating",
+        presence_plane          = "Flying",
         presence_racingranked   = "Competing at %s Rank",
         presence_normalspeed    = "a Normal Speed",
         presence_highspeed      = "High Speed",
@@ -114,7 +117,10 @@ local LocalisationKey = {
         presence_fest            = "Festival",
         presence_legend          = "Compétition légendaire",
         presence_wait            = "En attente",
-        presence_racing          = "Course à %s",
+        presence_racing          = "%s à %s",
+        presence_car             = "Conduisant",
+        presence_boat            = "Naviguant",
+        presence_plane           = "Volant",
         presence_racingranked    = "Compétition à %s rang",
         presence_normalspeed     = "à vitesse normale",
         presence_highspeed       = "à haute vitesse",
@@ -158,7 +164,10 @@ local LocalisationKey = {
         presence_fest            = "In una partita Festival",
         presence_legend          = "Competizione tra leggende",
         presence_wait            = "In attesa",
-        presence_racing          = "Gareggiando in %s",
+        presence_racing          = "%s a %s",
+        presence_car             = "Gareggiando",
+        presence_boat            = "Nuotando",
+        presence_plane           = "Volando",
         presence_racingranked    = "Compete in %s",
         presence_normalspeed     = "Velocità Normale",
         presence_highspeed       = "Velocità Alta",
@@ -201,7 +210,10 @@ local LocalisationKey = {
         presence_fest            = "Festival-Spiel",
         presence_legend          = "Legendenwettkampf",
         presence_wait            = "Wartet",
-        presence_racing          = "Fährt Rennen auf %s",
+        presence_racing          = "%s mit %s",
+        presence_car             = "Rast",
+        presence_boat            = "Segelt",
+        presence_plane           = "Fliegt",
         presence_racingranked    = "Gewertetes Rennen auf %s",
         presence_normalspeed     = "Normale Geschwindigkeit",
         presence_highspeed       = "Hohes Tempo!",
@@ -245,7 +257,10 @@ local LocalisationKey = {
         presence_fest            = "Partida de Festival",
         presence_legend          = "Competencia legendaria",
         presence_wait            = "Esperando",
-        presence_racing          = "Corriendo en %s",
+        presence_racing          = "%s a %s",
+        presence_car             = "Corriendo",
+        presence_boat            = "Navegando",
+        presence_plane           = "Volando",
         presence_racingranked    = "Compitiendo en %s rango",
         presence_normalspeed     = "a velocidad normal",
         presence_highspeed       = "a alta velocidad",
@@ -326,20 +341,52 @@ local LocalisationKey = {
         presence_uniondiscord   = "UnionDiscord %s",
     },
 
-    -- Machine Translation
+    -- Translated by DHedge for 2.0 release (05-10-2025)
     Pl = {
-        presence_menu_offline   = "Bezczynny w menu głównym",
-        presence_menu_online    = "Bezczynny w lobby online",
-        presence_jukebox        = "Zakłada winyl i puszcza muzykę!",
-        presence_courseselect   = "Wybór trasy",
-        presence_grandprix      = "Wybór Grand Prix",
-        presence_class          = "Wybór klasy prędkości",
-        presence_racerselect    = "Wybór postaci i pojazdu",
-        presence_friendmatch    = "Mecz towarzyski",
-        presence_paused         = "Gra wstrzymana",
-        presence_garage         = "Dostosowywanie pojazdu",
-        presence_finish         = "Wyścig zakończony",
-        presence_uniondiscord   = "UnionDiscord %s",
+        presence_menu_offline = "Bezczynność w Menu Głównym",
+        presence_menu_online  = "Bezczynność w Lobby Sieciowym",
+        presence_inmenus      = "W Menu",
+        presence_jukebox      = "Posłuchaj Muzyki!",
+        presence_courseselect = "Wybieranie Toru",
+        presence_prixselect   = "Wybieranie Grand Prix",
+        presence_class        = "Wybieranie klasy prędkości",
+        presence_racerselect  = "Wybieranie Postaci i Maszyny",
+        presence_friendmatch  = "Mecz ze Znajomymi",
+        presence_paused       = "Pauza Gry",
+        presence_garage       = "Dostosowywanie Maszyny",
+        presence_finish       = "Wyścig Zakończony",
+        presence_uniondiscord = "UnionDiscord %s",
+        presence_mainmenu     = "Menu Główne",
+        presence_grandprix    = "Grand Prix",
+        presence_timetrial    = "Próba Czasowa",
+        presence_partyrace      = "Park Wyścigowy",
+        presence_rankmatch      = "Mecz Światowy",
+        presence_fest           = "Festiwal",
+        presence_legend         = "Konkurencja Legendy",
+        presence_wait           = "Czekanie",
+        presence_racing         = "%s w %s",
+        presence_car            = "Ściganie się",
+        presence_boat            = "Pływanie",
+        presence_plane           = "Latanie",
+        presence_racingranked    = "Competing at %s Rank",
+        presence_normalspeed     = "Normalnej Prędkości",
+        presence_highspeed       = "Wysokiej Prędkości",
+        presence_sonicspeed      = "Prędkości Sonicznej",
+        presence_supersonicspeed = "Prędkości Super Sonicznej!",
+        presence_lap             = "Okrążenie %s/3",
+        presence_1st             = "1st",
+        presence_2nd             = "2nd",
+        presence_3rd             = "3rd",
+        presence_4th             = "4th",
+        presence_5th             = "5th",
+        presence_6th             = "6th",
+        presence_7th             = "7th",
+        presence_8th             = "8th",
+        presence_9th             = "9th",
+        presence_10th            = "10th",
+        presence_11th            = "11th",
+        presence_12th            = "12th",
+                
     },
 
     -- Translated by: limavi__ (03-10-2025)
@@ -474,6 +521,21 @@ Localisation.SpeedClassMap = {
     SuperSonicSpeed = "presence_supersonicspeed",
 }
 
+Localisation.VehicleRacingMap = {
+    VehicleTypeCar = "presence_car",
+    VehicleTypeBoat = "presence_boat",
+    VehicleTypePlane = "presence_plane",
+}
+
+function Localisation.GetVehicleDrivingText(vehicle_id)
+    local key = Localisation.VehicleRacingMap[vehicle_id]
+    if not key or key == "" then
+        return "" -- fallback for unmapped modes
+    end
+
+    return Localisation.T(key)
+end
+
 function Localisation.GetGameModeText(mode_id)
     local key = Localisation.GameModeMap[mode_id]
     if not key or key == "" then
@@ -504,7 +566,8 @@ local function T(key, ...)
         De = true,
         Es = true,
         EsUS = true,
-        Pt = true,
+        Pl = true,
+        -- Pt = true, -- Needs vehicle translation info
     }
     
     -- If we're not using an enabled language, just default back to English.
