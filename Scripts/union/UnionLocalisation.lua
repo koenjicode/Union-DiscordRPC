@@ -389,7 +389,7 @@ local LocalisationKey = {
                 
     },
 
-    -- Translated by: limavi__ (03-10-2025)
+    -- Updated translations for 0.21: limavi__ (06-10-2025)
     Pt = {
         presence_menu_offline    = "Inativo no Menu Principal",
         presence_menu_online     = "Inativo em um Saguão Online",
@@ -412,7 +412,10 @@ local LocalisationKey = {
         presence_fest            = "Festival",
         presence_legend          = "Competição Lenda",
         presence_wait            = "Aguardando",
-        presence_racing          = "Corrida em %s",
+        presence_racing          = "%s na %s",
+        presence_car             = "Correndo",
+        presence_boat            = "Navegando",
+        presence_plane           = "Voando",
         presence_racingranked    = "Competindo em %s Rank",
         presence_normalspeed     = "Velocidade Normal",
         presence_highspeed       = "Velocidade Alta",
@@ -567,7 +570,7 @@ local function T(key, ...)
         Es = true,
         EsUS = true,
         Pl = true,
-        -- Pt = true, -- Needs vehicle translation info
+        Pt = true,
     }
     
     -- If we're not using an enabled language, just default back to English.

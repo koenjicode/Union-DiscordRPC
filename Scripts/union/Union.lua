@@ -7,7 +7,7 @@ Union.Math          = require("Union.UnionMath")
 Union.Structures    = require("Union.UnionStructures")
 Union.Localisation  = require("Union.UnionLocalisation")
 
-local script_version = "ver. 0.02.00"
+local script_version = "ver. 0.02.01"
 
 -- A table for all the key level states.
 Union.DiscordLevelStates = {
